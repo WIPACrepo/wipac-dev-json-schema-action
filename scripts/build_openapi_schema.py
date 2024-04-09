@@ -26,8 +26,8 @@ def main(src: str, dst: str) -> None:
     if isinstance(spec["paths"], str) and spec["paths"].startswith(
         "GHA_CI_MAKE_PATHS_FROM_DIR"
     ):
-        # ex: GHA_CI_MAKE_PATHS_FROM_DIR ./paths/
-        paths_dir = pathlib.Path(spec["paths"].split()[1])
+        # ex: "GHA_CI_MAKE_PATHS_FROM_DIR ./paths/"
+        paths_dir = pathlib.Path(src).parent / pathlib.Path(spec["paths"].split()[1])
         spec["paths"] = {}  # *** OVERRIDE ANYTHING THAT WAS HERE ***
 
         # assemble
