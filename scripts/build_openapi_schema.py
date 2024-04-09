@@ -33,6 +33,8 @@ def main(src: str, dst: str) -> None:
         print(paths_dir)
         spec["paths"] = {}  # *** OVERRIDE ANYTHING THAT WAS HERE ***
 
+        assert 0
+
         # assemble
         for fpath in paths_dir.iterdir():
             print(fpath)
