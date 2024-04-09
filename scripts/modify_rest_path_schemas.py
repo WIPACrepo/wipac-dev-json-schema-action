@@ -46,9 +46,12 @@ NEW_404 = {
 
 def main(dpath: str) -> None:
     """Main."""
+    print("Modifying REST path schemas...")
+    print(dpath)
 
     # GO!
     for fpath in pathlib.Path(dpath).iterdir():
+        print(fpath)
         with open(fpath) as f:
             spec = json.load(f)
 

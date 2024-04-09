@@ -13,6 +13,8 @@ LOGGER = logging.getLogger(__name__)
 
 def main(dpath: str) -> None:
     """Main."""
+    print("Modifying DB Schemas...")
+    print(dpath)
 
     for fpath in pathlib.Path(dpath).iterdir():
         with open(fpath) as f:
