@@ -98,5 +98,5 @@ runs:
       run: |
         git add . || true
         git commit -m "<ci> modify openapi/jsonschema file(s)" || true
-        (git push && echo "changes pushed") || true
+        git push || true
       shell: bash
