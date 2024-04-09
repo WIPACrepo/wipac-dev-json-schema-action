@@ -67,15 +67,15 @@ runs:
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
       if: env.IS_GIT_BEHIND != 'true'
       run: |
-        cd ${{ github.workspace }}/${{ inputs.rest_openapi_paths_dir }}
-        python modify_rest_path_schemas.py
+        python ${{ github.action_path }}/scripts/modify_rest_path_schemas.py \
+            ${{ github.workspace }}/${{ inputs.rest_openapi_paths_dir }}
       shell: bash
 
     - name: modify DB schemas - ${{ inputs.db_jsonschema_dir }}
       if: env.IS_GIT_BEHIND != 'true' && inputs.db_jsonschema_dir != ''
       run: |
-        cd ${{ github.workspace }}/${{ inputs.db_jsonschema_dir }}
-        python modify_db_schemas.py
+        python ${{ github.action_path }}/scripts/modify_db_schemas.py \
+            ${{ github.workspace }}/${{ inputs.db_jsonschema_dir }}
       shell: bash
 
     - name: auto-build ${{ inputs.rest_openapi_spec_fpath }}
@@ -86,10 +86,9 @@ runs:
         # ANY MODIFICATIONS SHOULD BE MADE TO **ORIGINAL FILES**
         # (NOT THE AUTO-GENERATED FILE) AND COMMITTED.
 
-        cd wms/$( dirname ${{ inputs.rest_openapi_prebuild_fpath }} )
-        python build_openapi_schema.py \
-            $( basename ${{ inputs.rest_openapi_prebuild_fpath }} ) \
-            $( basename ${{ inputs.rest_openapi_spec_fpath }} )
+        python ${{ github.action_path }}/scripts/build_openapi_schema.py \
+            ${{ inputs.rest_openapi_prebuild_fpath }} \
+            ${{ inputs.rest_openapi_spec_fpath }}
       shell: bash
 
     - name: Push changes
