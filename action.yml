@@ -89,8 +89,8 @@ runs:
         # (NOT THE AUTO-GENERATED FILE) AND COMMITTED.
 
         python ${{ github.action_path }}/scripts/build_openapi_schema.py \
-            ${{ inputs.rest_openapi_prebuild_fpath }} \
-            ${{ inputs.rest_openapi_spec_fpath }}
+            ${{ github.workspace }}/${{ inputs.rest_openapi_prebuild_fpath }} \
+            ${{ github.workspace }}/${{ inputs.rest_openapi_spec_fpath }}
       shell: bash
 
     - name: Push changes
