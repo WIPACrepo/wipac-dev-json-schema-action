@@ -13,6 +13,8 @@ LOGGER = logging.getLogger(__name__)
 
 def main(src: str, dst: str) -> None:
     """Main."""
+    print("Building OpenAPI schema...")
+    print(src, dst)
 
     # NOTE: DO NOT CHANGE THE CONTENTS OF THE SCHEMA, ONLY ASSEMBLE.
     #
