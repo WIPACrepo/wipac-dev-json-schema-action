@@ -33,8 +33,6 @@ def main(src: str, dst: str) -> None:
         print(paths_dir)
         spec["paths"] = {}  # *** OVERRIDE ANYTHING THAT WAS HERE ***
 
-        assert 0
-
         # assemble
         for fpath in paths_dir.iterdir():
             print(fpath)
@@ -50,12 +48,12 @@ def main(src: str, dst: str) -> None:
     # ex: GHA_CI_INGEST_FILE_CONTENTS ../db/TaskDirective.json
     def ingest_file(d, k):
         parts = d[k].split()
-        fpath = parts[1]
-        options = parts[2:]
-        with open(fpath) as f:
+        _fpath = pathlib.Path(src).parent / parts[1]
+        _options = parts[2:]
+        with open(_fpath) as f:
             d[k] = json.load(f)
             # grab options
-            for opt in options:
+            for opt in _options:
                 okey, oval = opt.split("=")
                 d[k][okey] = json.loads(oval)
 
