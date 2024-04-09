@@ -67,4 +67,4 @@ def main(src: str, dst: str) -> None:
 
 
 if __name__ == "__main__":
-    main(w, sys.argv[2])
+    main(sys.argv[1], sys.argv[2])
