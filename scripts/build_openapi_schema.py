@@ -28,10 +28,12 @@ def main(src: str, dst: str) -> None:
     ):
         # ex: "GHA_CI_MAKE_PATHS_FROM_DIR ./paths/"
         paths_dir = pathlib.Path(src).parent / pathlib.Path(spec["paths"].split()[1])
+        print(paths_dir)
         spec["paths"] = {}  # *** OVERRIDE ANYTHING THAT WAS HERE ***
 
         # assemble
         for fpath in paths_dir.iterdir():
+            print(fpath)
             with open(fpath) as f:
                 if fpath.stem == "root":
                     path_pattern = "/"
