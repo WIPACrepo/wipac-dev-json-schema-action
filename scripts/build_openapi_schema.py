@@ -66,7 +66,7 @@ def main(src: str, dst: str) -> None:
 
     # format neatly
     spec["paths"] = dict(sorted(spec["paths"].items()))
-    with open(dst, "w") as f:
+    with open(dst, "w+") as f:
         json.dump(spec, f, indent=4)
 
 
