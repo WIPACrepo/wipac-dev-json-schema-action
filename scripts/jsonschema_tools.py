@@ -10,6 +10,7 @@ LOGGER = logging.getLogger(__name__)
 class JsonSchemaValueChangedException(Exception):
     """Raised when a JSON schema value changes."""
 
+
 def set_all_nested(
     spec: dict,
     setter: Callable[[dict, str], None],
