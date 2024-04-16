@@ -15,6 +15,7 @@ def main(src: str, dst: str) -> None:
     """Main."""
     print("Building OpenAPI schema...")
     print(src, dst)
+    pathlib.Path(dst).parent.mkdir(parents=True, exist_ok=True)
 
     # NOTE: DO NOT CHANGE THE CONTENTS OF THE SCHEMA, ONLY ASSEMBLE.
     #
