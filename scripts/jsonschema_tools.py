@@ -7,6 +7,10 @@ from typing import Callable
 LOGGER = logging.getLogger(__name__)
 
 
+class JsonSchemaValueChangedException(Exception):
+    """Raised when a JSON schema value changes."""
+
+
 def set_all_nested(
     spec: dict,
     setter: Callable[[dict, str], None],
@@ -22,14 +26,14 @@ def set_all_nested(
         for key, val in subdict.items():
             if if_this(subdict, key):
                 setter(subdict, key)
-                raise Exception("dict may have changed (did not check prev value)")
+                raise JsonSchemaValueChangedException()
             elif isinstance(val, dict):
                 settle_nested_subdict_one_at_a_time(val)
 
     while True:
         try:
             settle_nested_subdict_one_at_a_time(spec)
-        except:  # noqa: E722
+        except JsonSchemaValueChangedException:
             continue
         break
 

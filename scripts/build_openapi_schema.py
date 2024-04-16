@@ -35,7 +35,7 @@ def main(src: str, dst: str) -> None:
         spec["paths"] = {}  # *** OVERRIDE ANYTHING THAT WAS HERE ***
 
         # assemble
-        for fpath in paths_dir.iterdir():
+        for fpath in paths_dir.iterdir():  # -> FileNotFoundError
             print(fpath)
             with open(fpath) as f:
                 if fpath.stem == "root":
@@ -50,6 +50,8 @@ def main(src: str, dst: str) -> None:
     def ingest_file(d, k):
         parts = d[k].split()
         _fpath = pathlib.Path(src).parent / parts[1]
+        if not _fpath.exists():
+            raise FileNotFoundError(_fpath)
         _options = parts[2:]
         with open(_fpath) as f:
             d[k] = json.load(f)
