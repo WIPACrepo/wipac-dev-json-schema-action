@@ -1,6 +1,5 @@
 """build_openapi_schema.py."""
 
-
 import json
 import logging
 import pathlib
@@ -25,6 +24,8 @@ def main(src: str, dst: str) -> None:
     with open(src) as f:
         spec = json.load(f)
 
+    maj_version = int(spec["info"]["version"].split(".", maxsplit=1)[0])
+
     # build paths entries
     if isinstance(spec["paths"], str) and spec["paths"].startswith(
         "GHA_CI_MAKE_PATHS_FROM_DIR"
@@ -39,9 +40,9 @@ def main(src: str, dst: str) -> None:
             print(fpath)
             with open(fpath) as f:
                 if fpath.stem == "root":
-                    path_pattern = "/"
+                    path_pattern = f"/v{maj_version}/"
                 else:
-                    path_pattern = "/" + fpath.stem.replace(".", "/")
+                    path_pattern = f"/v{maj_version}/{fpath.stem.replace(".", "/")}"
                 print(fpath, path_pattern)
                 spec["paths"][path_pattern] = json.load(f)  # type: ignore[index]
 
