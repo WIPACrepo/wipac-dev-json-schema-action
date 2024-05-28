@@ -42,7 +42,7 @@ def main(src: str, dst: str) -> None:
                 if fpath.stem == "root":
                     path_pattern = f"/v{maj_version}/"
                 else:
-                    path_pattern = f"/v{maj_version}/{fpath.stem.replace(".", "/")}"
+                    path_pattern = f"/v{maj_version}/{fpath.stem.replace('.', '/')}"
                 print(fpath, path_pattern)
                 spec["paths"][path_pattern] = json.load(f)  # type: ignore[index]
 
