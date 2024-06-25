@@ -16,6 +16,10 @@ inputs:
     description: 'OPTIONAL: The directory containing jsonschema-valid JSON files for objects in a database (mongodb)'
     required: false
     default: ''
+  dunder_paths_no_vprefix:
+    description: 'OPTIONAL: Dunder paths (the .json filenames) which should not be prefixed with the version string'
+    required: false
+    default: ''
   git_committer_name:
     description: 'OPTIONAL: The name used for "git config user.name"'
     required: false
@@ -89,8 +93,9 @@ runs:
         # (NOT THE AUTO-GENERATED FILE) AND COMMITTED.
 
         python ${{ github.action_path }}/scripts/build_openapi_schema.py \
-            ${{ github.workspace }}/${{ inputs.rest_openapi_prebuild_fpath }} \
-            ${{ github.workspace }}/${{ inputs.rest_openapi_spec_fpath }}
+            --src ${{ github.workspace }}/${{ inputs.rest_openapi_prebuild_fpath }} \
+            --dst ${{ github.workspace }}/${{ inputs.rest_openapi_spec_fpath }} \
+            --dunder-paths-no-vprefix ${{ inputs.dunder_paths_no_vprefix }}
       shell: bash
 
     - name: Push changes
