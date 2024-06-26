@@ -16,15 +16,12 @@ def get_path_pattern(
     maj_version: int,
 ) -> str:
     """Assemble the path pattern from the dunder path with other additions."""
-    translated_path = dunder_path.replace("__", "/")
+    translated_path = dunder_path.replace("__", "/").lstrip("/")
 
     if dunder_path in dunder_paths_no_vprefix:
-        return translated_path
-
-    if translated_path == "/" or translated_path == "root":
-        return f"/v{maj_version}/"
-
-    return f"/v{maj_version}/{translated_path}"
+        return f"/{translated_path}"
+    else:
+        return f"/v{maj_version}/{translated_path}"
 
 
 def build_paths_entries(src: str, spec: dict, dunder_paths_no_vprefix: list[str]):
