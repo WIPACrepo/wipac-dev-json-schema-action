@@ -1,15 +1,18 @@
-name: 'wipac-dev-rest-interface-schema-action'
-description: "GitHub Action Package for Standardizing and Organizing a REST Interface's Schema"
+name: 'wipac-dev-json-schema-action'
+description: "GitHub Action Package for Standardizing and Organizing a Project's JSON Schema / OpenAPI Files"
 
 inputs:
   rest_openapi_paths_dir:
     description: 'The directory containing openapi-valid JSON files, one for each REST endpoint (path)'
     required: true
-  rest_openapi_prebuild_fpath:
-    description: 'The pre-compiled JSON file with special macros/tokens to compile into an openapi spec (rest_openapi_spec_fpath)'
+  rest_openapi_base_fpath:
+    description: 'The pre-compiled JSON file with special macros/tokens to compile into an openapi spec (rest_openapi_dest_fpath)'
     required: true
-  rest_openapi_spec_fpath:
+  rest_openapi_dest_fpath:
     description: 'The location to output the compiled openapi spec JSON file'
+    required: true
+  version:
+    description: 'The semantic version for whose major component is prepended to each route; also updates the openapi schema (future: automate version finding)'
     required: true
   # OPTIONAL
   db_jsonschema_dir:
@@ -34,16 +37,22 @@ runs:
   steps:
     - name: check required inputs
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         if [ -z "${{ inputs.rest_openapi_paths_dir }}" ]; then
-          echo "ERROR: required input not provided: rest_openapi_paths_dir"
+          echo "::error::required input not provided: rest_openapi_paths_dir"
           exit 1
         fi
-        if [ -z "${{ inputs.rest_openapi_prebuild_fpath }}" ]; then
-          echo "ERROR: required input not provided: rest_openapi_prebuild_fpath"
+        if [ -z "${{ inputs.rest_openapi_base_fpath }}" ]; then
+          echo "::error::required input not provided: rest_openapi_base_fpath"
           exit 1
         fi
-        if [ -z "${{ inputs.rest_openapi_spec_fpath }}" ]; then
-          echo "ERROR: required input not provided: rest_openapi_spec_fpath"
+        if [ -z "${{ inputs.rest_openapi_dest_fpath }}" ]; then
+          echo "::error::required input not provided: rest_openapi_dest_fpath"
+          exit 1
+        fi
+        if [ -z "${{ inputs.version }}" ]; then
+          echo "::error::required input not provided: version"
           exit 1
         fi
       shell: bash
@@ -54,6 +63,8 @@ runs:
 
     - name: Is this the most recent commit? It won't be if the action was reran
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git fetch
         if [[ $(git status -sb | grep behind) ]]; then
           echo "this commit is not the most recent on this branch -- rest of action will be skipped"
@@ -66,13 +77,40 @@ runs:
     - name: Git config
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git config user.name ${{ inputs.git_committer_name }}
         git config user.email ${{ inputs.git_committer_email }}
+      shell: bash
+
+    - name: incorporate semantic version (${{ inputs.version }})
+      if: env.IS_GIT_BEHIND != 'true'
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        
+        # validate
+        if [[ "${{ inputs.version }}" =~ ^([0-9]+)(\.[0-9]+(\.[0-9]+)?)?$ ]]; then
+          echo "valid semver"
+        else
+          echo "::error::Invalid semver: ${{ inputs.version }}"
+          exit 2
+        fi
+        
+        # edit
+        TMP_FILE="$(mktemp)"
+        jq --indent 4 --arg version "${{ inputs.version }}" \
+            '.info.version = $version' "${{ inputs.rest_openapi_base_fpath }}" \
+            > "$TMP_FILE"
+        mv "$TMP_FILE" "${{ inputs.rest_openapi_base_fpath }}"
+        echo "Updated version to ${{ inputs.version }} in ${{ inputs.rest_openapi_base_fpath }}"
       shell: bash
 
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         python ${{ github.action_path }}/scripts/modify_rest_path_schemas.py \
             ${{ github.workspace }}/${{ inputs.rest_openapi_paths_dir }}
       shell: bash
@@ -80,28 +118,34 @@ runs:
     - name: modify DB schemas - ${{ inputs.db_jsonschema_dir }}
       if: env.IS_GIT_BEHIND != 'true' && inputs.db_jsonschema_dir != ''
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         python ${{ github.action_path }}/scripts/modify_db_schemas.py \
             ${{ github.workspace }}/${{ inputs.db_jsonschema_dir }}
       shell: bash
 
-    - name: auto-build ${{ inputs.rest_openapi_spec_fpath }}
+    - name: auto-build ${{ inputs.rest_openapi_dest_fpath }}
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         # NOTE: DO NOT CHANGE THE CONTENTS OF THE SCHEMA, ONLY ASSEMBLE.
         #
         # ANY MODIFICATIONS SHOULD BE MADE TO **ORIGINAL FILES**
         # (NOT THE AUTO-GENERATED FILE) AND COMMITTED.
 
         python ${{ github.action_path }}/scripts/build_openapi_schema.py \
-            --src ${{ github.workspace }}/${{ inputs.rest_openapi_prebuild_fpath }} \
-            --dst ${{ github.workspace }}/${{ inputs.rest_openapi_spec_fpath }} \
+            --src ${{ github.workspace }}/${{ inputs.rest_openapi_base_fpath }} \
+            --dst ${{ github.workspace }}/${{ inputs.rest_openapi_dest_fpath }} \
             --dunder-paths-no-vprefix ${{ inputs.dunder_paths_no_vprefix }}
       shell: bash
 
     - name: Push changes
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git add . || true
-        git commit -m "<ci> modify openapi/jsonschema file(s)" || true
+        git commit -m "<ci> modify json schema and/or openapi file(s)" || true
         git push || true
       shell: bash
