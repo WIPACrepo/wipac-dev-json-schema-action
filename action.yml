@@ -1,5 +1,5 @@
-name: 'wipac-dev-rest-interface-schema-action'
-description: "GitHub Action Package for Standardizing and Organizing a REST Interface's Schema"
+name: 'wipac-dev-json-schema-action'
+description: "GitHub Action Package for Standardizing and Organizing a Project's JSON Schema / OpenAPI Files"
 
 inputs:
   rest_openapi_paths_dir:
@@ -34,6 +34,8 @@ runs:
   steps:
     - name: check required inputs
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         if [ -z "${{ inputs.rest_openapi_paths_dir }}" ]; then
           echo "ERROR: required input not provided: rest_openapi_paths_dir"
           exit 1
@@ -54,6 +56,8 @@ runs:
 
     - name: Is this the most recent commit? It won't be if the action was reran
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git fetch
         if [[ $(git status -sb | grep behind) ]]; then
           echo "this commit is not the most recent on this branch -- rest of action will be skipped"
@@ -66,6 +70,8 @@ runs:
     - name: Git config
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git config user.name ${{ inputs.git_committer_name }}
         git config user.email ${{ inputs.git_committer_email }}
       shell: bash
@@ -73,6 +79,8 @@ runs:
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         python ${{ github.action_path }}/scripts/modify_rest_path_schemas.py \
             ${{ github.workspace }}/${{ inputs.rest_openapi_paths_dir }}
       shell: bash
@@ -80,6 +88,8 @@ runs:
     - name: modify DB schemas - ${{ inputs.db_jsonschema_dir }}
       if: env.IS_GIT_BEHIND != 'true' && inputs.db_jsonschema_dir != ''
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         python ${{ github.action_path }}/scripts/modify_db_schemas.py \
             ${{ github.workspace }}/${{ inputs.db_jsonschema_dir }}
       shell: bash
@@ -87,6 +97,8 @@ runs:
     - name: auto-build ${{ inputs.rest_openapi_spec_fpath }}
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         # NOTE: DO NOT CHANGE THE CONTENTS OF THE SCHEMA, ONLY ASSEMBLE.
         #
         # ANY MODIFICATIONS SHOULD BE MADE TO **ORIGINAL FILES**
@@ -101,6 +113,8 @@ runs:
     - name: Push changes
       if: env.IS_GIT_BEHIND != 'true'
       run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git add . || true
         git commit -m "<ci> modify openapi/jsonschema file(s)" || true
         git push || true
