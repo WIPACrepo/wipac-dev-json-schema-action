@@ -99,7 +99,7 @@ runs:
         
         # edit
         TMP_FILE="$(mktemp)"
-        jq --arg version "${{ inputs.version }}" \
+        jq --indent 4 --arg version "${{ inputs.version }}" \
             '.info.version = $version' "${{ inputs.rest_openapi_base_fpath }}" \
             > "$TMP_FILE"
         mv "$TMP_FILE" "${{ inputs.rest_openapi_base_fpath }}"
