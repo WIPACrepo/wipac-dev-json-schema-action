@@ -11,6 +11,9 @@ inputs:
   rest_openapi_spec_fpath:
     description: 'The location to output the compiled openapi spec JSON file'
     required: true
+  version:
+    description: 'The version number to append to each route and update in the the openapi schema (future: automate version finding)'
+    required: true
   # OPTIONAL
   db_jsonschema_dir:
     description: 'OPTIONAL: The directory containing jsonschema-valid JSON files for objects in a database (mongodb)'
@@ -74,6 +77,20 @@ runs:
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git config user.name ${{ inputs.git_committer_name }}
         git config user.email ${{ inputs.git_committer_email }}
+      shell: bash
+
+    - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
+      if: env.IS_GIT_BEHIND != 'true' && inputs.version != ''
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        
+        TMP_FILE="$(mktemp)"
+        jq --arg version "${{ inputs.version }}" \
+            '.info.version = $version' "${{ inputs.rest_openapi_spec_fpath }}" \
+            > "$TMP_FILE"
+        mv "$TMP_FILE" "${{ inputs.rest_openapi_spec_fpath }}"
+        echo "Updated version to ${{ inputs.version }} in ${{ inputs.rest_openapi_spec_fpath }}"
       shell: bash
 
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
