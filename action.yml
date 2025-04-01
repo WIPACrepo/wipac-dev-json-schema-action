@@ -12,7 +12,7 @@ inputs:
     description: 'The location to output the compiled openapi spec JSON file'
     required: true
   version:
-    description: 'The version number to append to each route and update in the the openapi schema (future: automate version finding)'
+    description: 'The version number to prepend to each route and update in the openapi schema (future: automate version finding)'
     required: true
   # OPTIONAL
   db_jsonschema_dir:
@@ -40,15 +40,19 @@ runs:
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         if [ -z "${{ inputs.rest_openapi_paths_dir }}" ]; then
-          echo "ERROR: required input not provided: rest_openapi_paths_dir"
+          echo "::error::required input not provided: rest_openapi_paths_dir"
           exit 1
         fi
         if [ -z "${{ inputs.rest_openapi_prebuild_fpath }}" ]; then
-          echo "ERROR: required input not provided: rest_openapi_prebuild_fpath"
+          echo "::error::required input not provided: rest_openapi_prebuild_fpath"
           exit 1
         fi
         if [ -z "${{ inputs.rest_openapi_spec_fpath }}" ]; then
-          echo "ERROR: required input not provided: rest_openapi_spec_fpath"
+          echo "::error::required input not provided: rest_openapi_spec_fpath"
+          exit 1
+        fi
+        if [ -z "${{ inputs.version }}" ]; then
+          echo "::error::required input not provided: version"
           exit 1
         fi
       shell: bash
@@ -80,7 +84,7 @@ runs:
       shell: bash
 
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
-      if: env.IS_GIT_BEHIND != 'true' && inputs.version != ''
+      if: env.IS_GIT_BEHIND != 'true'
       run: |
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
