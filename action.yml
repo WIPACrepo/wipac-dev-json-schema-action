@@ -89,6 +89,7 @@ runs:
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         
+        # validate
         if [[ "${{ inputs.version }}" =~ ^([0-9]+)(\.[0-9]+(\.[0-9]+)?)?$ ]]; then
           echo "valid semver"
         else
@@ -96,12 +97,15 @@ runs:
           exit 2
         fi
         
+        # edit
         TMP_FILE="$(mktemp)"
         jq --arg version "${{ inputs.version }}" \
             '.info.version = $version' "${{ inputs.rest_openapi_spec_fpath }}" \
             > "$TMP_FILE"
         mv "$TMP_FILE" "${{ inputs.rest_openapi_spec_fpath }}"
         echo "Updated version to ${{ inputs.version }} in ${{ inputs.rest_openapi_spec_fpath }}"
+        
+        cat "${{ inputs.rest_openapi_spec_fpath }}"
       shell: bash
 
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
