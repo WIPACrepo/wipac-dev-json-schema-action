@@ -5,10 +5,10 @@ inputs:
   rest_openapi_paths_dir:
     description: 'The directory containing openapi-valid JSON files, one for each REST endpoint (path)'
     required: true
-  rest_openapi_prebuild_fpath:
-    description: 'The pre-compiled JSON file with special macros/tokens to compile into an openapi spec (rest_openapi_spec_fpath)'
+  rest_openapi_base_fpath:
+    description: 'The pre-compiled JSON file with special macros/tokens to compile into an openapi spec (rest_openapi_dest_fpath)'
     required: true
-  rest_openapi_spec_fpath:
+  rest_openapi_dest_fpath:
     description: 'The location to output the compiled openapi spec JSON file'
     required: true
   version:
@@ -43,12 +43,12 @@ runs:
           echo "::error::required input not provided: rest_openapi_paths_dir"
           exit 1
         fi
-        if [ -z "${{ inputs.rest_openapi_prebuild_fpath }}" ]; then
-          echo "::error::required input not provided: rest_openapi_prebuild_fpath"
+        if [ -z "${{ inputs.rest_openapi_base_fpath }}" ]; then
+          echo "::error::required input not provided: rest_openapi_base_fpath"
           exit 1
         fi
-        if [ -z "${{ inputs.rest_openapi_spec_fpath }}" ]; then
-          echo "::error::required input not provided: rest_openapi_spec_fpath"
+        if [ -z "${{ inputs.rest_openapi_dest_fpath }}" ]; then
+          echo "::error::required input not provided: rest_openapi_dest_fpath"
           exit 1
         fi
         if [ -z "${{ inputs.version }}" ]; then
@@ -100,12 +100,10 @@ runs:
         # edit
         TMP_FILE="$(mktemp)"
         jq --arg version "${{ inputs.version }}" \
-            '.info.version = $version' "${{ inputs.rest_openapi_spec_fpath }}" \
+            '.info.version = $version' "${{ inputs.rest_openapi_base_fpath }}" \
             > "$TMP_FILE"
-        mv "$TMP_FILE" "${{ inputs.rest_openapi_spec_fpath }}"
-        echo "Updated version to ${{ inputs.version }} in ${{ inputs.rest_openapi_spec_fpath }}"
-        
-        cat "${{ inputs.rest_openapi_spec_fpath }}"
+        mv "$TMP_FILE" "${{ inputs.rest_openapi_base_fpath }}"
+        echo "Updated version to ${{ inputs.version }} in ${{ inputs.rest_openapi_base_fpath }}"
       shell: bash
 
     - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
@@ -126,7 +124,7 @@ runs:
             ${{ github.workspace }}/${{ inputs.db_jsonschema_dir }}
       shell: bash
 
-    - name: auto-build ${{ inputs.rest_openapi_spec_fpath }}
+    - name: auto-build ${{ inputs.rest_openapi_dest_fpath }}
       if: env.IS_GIT_BEHIND != 'true'
       run: |
         set -euo pipefail
@@ -137,8 +135,8 @@ runs:
         # (NOT THE AUTO-GENERATED FILE) AND COMMITTED.
 
         python ${{ github.action_path }}/scripts/build_openapi_schema.py \
-            --src ${{ github.workspace }}/${{ inputs.rest_openapi_prebuild_fpath }} \
-            --dst ${{ github.workspace }}/${{ inputs.rest_openapi_spec_fpath }} \
+            --src ${{ github.workspace }}/${{ inputs.rest_openapi_base_fpath }} \
+            --dst ${{ github.workspace }}/${{ inputs.rest_openapi_dest_fpath }} \
             --dunder-paths-no-vprefix ${{ inputs.dunder_paths_no_vprefix }}
       shell: bash
 
