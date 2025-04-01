@@ -12,7 +12,7 @@ inputs:
     description: 'The location to output the compiled openapi spec JSON file'
     required: true
   version:
-    description: 'The version number to prepend to each route and update in the openapi schema (future: automate version finding)'
+    description: 'The semantic version for whose major component is prepended to each route; also updates the openapi schema (future: automate version finding)'
     required: true
   # OPTIONAL
   db_jsonschema_dir:
@@ -83,11 +83,18 @@ runs:
         git config user.email ${{ inputs.git_committer_email }}
       shell: bash
 
-    - name: modify REST path schemas - ${{ inputs.rest_openapi_paths_dir }}
+    - name: incorporate semantic version (${{ inputs.version }})
       if: env.IS_GIT_BEHIND != 'true'
       run: |
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        
+        if [[ "${{ inputs.version }}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+          echo "valid semver"
+        else
+          echo "::error::Invalid semver: ${{ inputs.version }}"
+          exit 2
+        fi
         
         TMP_FILE="$(mktemp)"
         jq --arg version "${{ inputs.version }}" \
