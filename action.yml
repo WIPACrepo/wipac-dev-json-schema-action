@@ -116,6 +116,6 @@ runs:
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         git add . || true
-        git commit -m "<ci> modify openapi/jsonschema file(s)" || true
+        git commit -m "<ci> modify json schema and/or openapi file(s)" || true
         git push || true
       shell: bash
